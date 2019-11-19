@@ -9,6 +9,9 @@
 #include <stdio.h>
 #include <vector>
 #include <algorithm> 
+#include <intrin.h>
+
+#include "crc.h"
 using namespace std;
 
 //http://www.libpng.org/pub/png/book/chapter11.html#png.ch11.div.14
@@ -19,6 +22,11 @@ using namespace std;
 #define bufferSize 200
 #define imageSize  0xF4240
 #define BYTES_PER_DWORD 5
+
+#define PNG_HEADER_SIZE 8
+#define BUFFER_SIZE 0x1fff
+#define PNG_CHUNK_HEADER_SIZE 8
+#define PNG_SIG_CHUNK_TYPE "IHDR"
 
 typedef struct ITXTDATA
 {
@@ -48,6 +56,81 @@ void DwordsToBytesArray(const DWORD* dwIn, BYTE* bOut, const UINT dwCount,
 			}
 		}
 	}
+}
+
+LONG _stdcall PngGetOffset(HANDLE hFile, PBYTE chunkType, DWORD* error) 
+{
+
+	LONG offset = 8;
+	//Skip first 8 bytes, because it is standard 
+	//https://www.w3.org/TR/2003/REC-PNG-20031110/#5PNG-file-signature
+	if (SetFilePointer(hFile, PNG_HEADER_SIZE, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
+	{
+		return -1;
+	}
+	DWORD bytesRead = 0, totalRead = 0;
+	BYTE buffer[BUFFER_SIZE];
+
+	for (;;) 
+	{
+		if (!ReadFile(hFile, &buffer[0], PNG_CHUNK_HEADER_SIZE, &bytesRead, NULL))
+		{
+			//Bad file format
+			return -1;
+	    }
+		offset += PNG_CHUNK_HEADER_SIZE;
+		if (bytesRead < PNG_CHUNK_HEADER_SIZE)
+		{
+			//Bad file format
+			return -1;
+		}
+		const unsigned int size = buffer[3] | buffer[2] << 8 | buffer[1] << 16 | buffer[0] << 24;
+		const unsigned char* tag = ((unsigned char*)&buffer[4]);
+		if (memcmp(tag, PNG_SIG_CHUNK_TYPE, 4) != 0) {
+			if (SetFilePointer(hFile, size + 4, NULL, FILE_CURRENT) == INVALID_SET_FILE_POINTER)
+			{
+				//cannot move file pointer properly / cannot find till the end.
+				return -1;
+			}
+			offset += sizeof PNG_SIG_CHUNK_TYPE;
+			continue;
+		}
+		else {
+			return offset - sizeof(DWORD);
+		}
+	}
+	return -1;
+}
+
+BOOL _stdcall PngPutITxt(HANDLE hFile, LONG offset, DWORD chunkSize, PBYTE chunkData, DWORD* error) 
+{	
+	//https://www.w3.org/TR/2003/REC-PNG-20031110/#5Chunk-layout
+	if (SetFilePointer(hFile, offset, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER) 
+	{
+		return false;
+	}
+	DWORD dwBytesWritten;
+	DWORD dwSignatureSizeBigEndian = _byteswap_ulong(chunkSize);
+
+	//PUT [LENGTH] A four-byte unsigned integer (Table 5.1)
+	if (!::WriteFile(hFile, &dwSignatureSizeBigEndian, sizeof(DWORD), &dwBytesWritten, NULL))
+	{
+		return false;
+	}
+	//PUT [CHUNK TYPE] A sequence of four bytes defining the chunk type. (eg. IHDR)
+	if (!::WriteFile(hFile, PNG_SIG_CHUNK_TYPE, sizeof (PNG_SIG_CHUNK_TYPE) , &dwBytesWritten, NULL))
+	{
+		return false;
+	}
+	//PUT [CHUNK DATA] The data bytes appropriate to the chunk type, if any. This field can be of zero length.
+	if (!::WriteFile(hFile, chunkData, chunkSize, &dwBytesWritten, NULL))
+	{
+		return false;
+	}
+	unsigned long checksum = crc_init();
+	check
+
+
 }
 
 //working version
@@ -132,7 +215,9 @@ int main()
 	};
 
 	size_t fileSize = filesize("D:\\SourceCodeTest\\media\\png\\png-itxt\\image\\sample2.png");
-	writeITXT(hFile, fileSize, data);
+	//writeITXT(hFile, fileSize, data);
+	DWORD error;
+	LONG offset = PngGetOffset(hFile, (BYTE*)PNG_SIG_CHUNK_TYPE, &error);
 	CloseHandle(hFile);
 
 

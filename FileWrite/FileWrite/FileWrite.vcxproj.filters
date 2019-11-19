@@ -18,5 +18,16 @@
     <ClCompile Include="FileWrite.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="crc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="crc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
