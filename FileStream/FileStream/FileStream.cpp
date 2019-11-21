@@ -41,13 +41,13 @@ std::string GetLastErrorAsString()
 	return message;
 }
 
-static bool CheckSignature(const std::wstring& dllPath, HANDLE& hfile, std::wstring& reason) {
+static bool CheckSignature(const std::wstring& dllPath, HANDLE& hfile, LPVOID pSIPClientData, std::wstring& reason) {
 	bool isTrusted = false;
 	std::vector<std::string> certificateChain;
 
 	WINTRUST_FILE_INFO file_info = { 0 };
 	file_info.cbStruct = sizeof(file_info);
-	//file_info.pcwszFilePath = dllPath.c_str();
+	file_info.pcwszFilePath = dllPath.c_str();
 	file_info.hFile = hfile;
 	file_info.pgKnownSubject = NULL;
 
@@ -69,7 +69,7 @@ static bool CheckSignature(const std::wstring& dllPath, HANDLE& hfile, std::wstr
 	// The WINTRUST_ACTION_GENERIC_VERIFY_V2 policy verifies that the certificate
 	// chains up to a trusted root CA, and that it has appropriate permission to
 	// sign code.
-	GUID policy_guid = WINTRUST_ACTION_GENERIC_VERIFY_V2;
+	GUID policy_guid = WINTRUST_ACTION_GENERIC_VERIFY_V2;  //WINTRUST_ACTION_GENERIC_CERT_VERIFY  WINTRUST_ACTION_GENERIC_VERIFY_V2
 
 	LONG result = WinVerifyTrust(static_cast<HWND>(INVALID_HANDLE_VALUE), &policy_guid, &wintrust_data);
 
@@ -96,7 +96,7 @@ int main()
 {
 	//ofstream myfile;
 	/*string filePath = "C:\\Users\\jixiang.li\\AppData\\Local\\Chromium\\User Data\\Apps\\helloworld_folder\\dll\\ThxNativeLite.dll";*/
-	string filePath = "D:\\downloadTest\\sample.exe";
+	string filePath = "D:\\downloadTest\\certTest2\\buffer.bin";
 	
 	std::ifstream input(filePath, std::ios::binary);
 	// copies all data into buffer
@@ -105,12 +105,12 @@ int main()
 	//FILE* memFile = open_memstream(buffer, buffer.size());
 	
 
-	HANDLE WINHandle = CreateFile(TEXT("D:\\downloadTest\\hello"), (GENERIC_WRITE | GENERIC_READ), (FILE_SHARE_READ | FILE_SHARE_WRITE |
-		FILE_SHARE_DELETE), 0, CREATE_ALWAYS, (FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE), 0); // (FILE_ATTRIBUTE_TEMPORARY) | FILE_FLAG_DELETE_ON_CLOSE
+	HANDLE WINHandle = CreateFile(TEXT("D:\\downloadTest\\certTest2\\org.png"), (GENERIC_WRITE | GENERIC_READ), (FILE_SHARE_READ | FILE_SHARE_WRITE |
+		FILE_SHARE_DELETE), 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0); // (FILE_ATTRIBUTE_TEMPORARY) | FILE_FLAG_DELETE_ON_CLOSE
 
 	DWORD bytesWritten;
 	char *str = reinterpret_cast<char*>(buffer.data());
-	WriteFile(WINHandle, str, buffer.size(), &bytesWritten, NULL);
+	//WriteFile(WINHandle, str, buffer.size(), &bytesWritten, NULL);
 
 	//DWORD  dwCurrentFilePosition = SetFilePointer(
 	//	WINHandle, // must have GENERIC_READ and/or GENERIC_WRITE
@@ -150,8 +150,8 @@ int main()
 	HANDLE try1 = NULL;
 	//int* ptr = 0;
 	//*ptr = 1;
-	bool isRazerSigned = CheckSignature(TEXT(""), WINHandle, reason);
-
+	bool isRazerSigned = CheckSignature(TEXT("D:\\downloadTest\\certTest2\\org.png"), WINHandle, buffer.data(), reason);
+	//bool isRazerSigned = CheckSignature(TEXT(""), WINHandle, NULL, reason);
 
 
 	CloseHandle(WINHandle);
