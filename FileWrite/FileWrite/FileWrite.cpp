@@ -128,7 +128,7 @@ BOOL _stdcall PngPutITxt(HANDLE hFile, LONG offset, DWORD chunkSize, PBYTE chunk
 		return false;
 	}
 	unsigned long checksum = crc_init();
-	check
+	//check
 
 
 }
@@ -157,7 +157,7 @@ void writeITXT(HANDLE fHandle, size_t fileSize, iTxt data) {
 	int targetIdx = -1;
 	for (DWORD i = 0; i < imageSize; i++) {
 		if (srcBuff[i] == 0x49) {
-			char checkStr[5] = { '\0' };
+			char checkStr[25] = { '\0' };
 			memcpy_s(checkStr, sizeof target, srcBuff + i, sizeof target);
 			string checkS(checkStr);
 			string targetS(target);
@@ -165,6 +165,7 @@ void writeITXT(HANDLE fHandle, size_t fileSize, iTxt data) {
 				targetIdx = i;
 				break;
 			}
+			
 		}
 	}
 	ptrdiff_t offset = (targetIdx) - 4;
@@ -190,7 +191,7 @@ void writeITXT(HANDLE fHandle, size_t fileSize, iTxt data) {
 
 int main()
 {
-	wstring inputPath = L"D:\\SourceCodeTest\\media\\png\\png-itxt\\image\\sample2.png";
+	wstring inputPath = L"D:\\Code\\C++\\FileOperationTest\\IcoDigest\\iconTest\\sample2.png";
 	HANDLE hFile;
 	//string filePath = "D:\\downloadTest\\sample.exe";
 	//std::ifstream input(filePath, std::ios::binary);
@@ -214,10 +215,10 @@ int main()
 		value//123123
 	};
 
-	size_t fileSize = filesize("D:\\SourceCodeTest\\media\\png\\png-itxt\\image\\sample2.png");
-	//writeITXT(hFile, fileSize, data);
+	size_t fileSize = filesize("D:\\Code\\C++\\FileOperationTest\\IcoDigest\\iconTest\\sample2.png");
+	writeITXT(hFile, fileSize, data);
 	DWORD error;
-	LONG offset = PngGetOffset(hFile, (BYTE*)PNG_SIG_CHUNK_TYPE, &error);
+	//LONG offset = PngGetOffset(hFile, (BYTE*)PNG_SIG_CHUNK_TYPE, &error);
 	CloseHandle(hFile);
 
 
