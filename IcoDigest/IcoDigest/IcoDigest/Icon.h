@@ -29,6 +29,18 @@
 
 #include "stdafx.h"
 
+typedef struct ICO_FILE_INFO_
+{
+	LONG beforePNGStartPosition;
+	LONG PNGStartPosition;
+	LONG afterPNGStartPosition;
+	LONG fileEndPosition;
+	INT32 nthImageIsPng;
+	INT32 numOfIco;
+	DWORD signatureSize;
+} ICO_FILE_INFO;
+
+
 typedef struct
 {
 	BYTE	bWidth;               // Width of the image
@@ -100,7 +112,7 @@ typedef struct
 
 /****************************************************************************/
 // Exported function prototypes
-LPICONRESOURCE ReadIconFromICOFile(LPCTSTR szFileName);
+LPICONRESOURCE ReadIconFromICOFile(HANDLE hFile,LPCTSTR szFileName, ICO_FILE_INFO &info);
 //BOOL WriteIconToICOFile(LPICONRESOURCE lpIR, LPCTSTR szFileName);
 //HICON MakeIconFromResource(LPICONIMAGE lpIcon);
 //LPICONRESOURCE ReadIconFromEXEFile(LPCTSTR szFileName);
